@@ -137,6 +137,8 @@ public class AiServiceMethodImplementationSupport {
     static {
         var defaultMemoryIdProviders = ServiceHelper.loadFactories(
                 DefaultMemoryIdProvider.class);
+        System.out.println("CCCCCCCCCCCCCCCCCCC: defaultMemoryIdProviders: "
+                + defaultMemoryIdProviders);
         if (defaultMemoryIdProviders.isEmpty()) {
             DEFAULT_MEMORY_ID_PROVIDERS = Collections.emptyList();
         } else {
@@ -162,6 +164,8 @@ public class AiServiceMethodImplementationSupport {
         QuarkusAiServiceContext context = input.context;
         AiServiceMethodCreateInfo createInfo = input.createInfo;
         Object[] methodArgs = input.methodArgs;
+
+        log.info("GGGGGGGGGGGGGGGGGGG context " + context.getClass() + ", hasChatmemory " + context.hasChatMemory());
 
         InvocationContext invocationContext = InvocationContext.builder()
                 .invocationId(UUID.randomUUID())
@@ -209,13 +213,14 @@ public class AiServiceMethodImplementationSupport {
         boolean isRunningOnWorkerThread = !Context.isOnEventLoopThread();
         Object[] methodArgs = invocationContext.methodArguments().toArray(Object[]::new);
         Object memoryId = invocationContext.chatMemoryId();
+        log.warn("---memoryId: " + memoryId);
 
         var chatMemory = context.hasChatMemory() ? context.chatMemoryService.getOrCreateChatMemory(memoryId) : null;
         // we want to defer saving the new messages because the service could fail and be retried
         // this also avoids fetching data from the remote stores every time we ask for the messages
         var committableChatMemory = chatMemory != null ? new DefaultCommittableChatMemory(chatMemory)
                 : new NoopChatMemory();
-
+        log.warn("---commitableMemory: " + committableChatMemory.getClass().getSimpleName());
         Optional<SystemMessage> systemMessage = prepareSystemMessage(methodCreateInfo, methodArgs, context, memoryId,
                 committableChatMemory);
 
@@ -384,7 +389,7 @@ public class AiServiceMethodImplementationSupport {
 
         Future<Moderation> moderationFuture = triggerModerationIfNeeded(context, methodCreateInfo, messagesToSend);
 
-        log.debug("Attempting to obtain AI response");
+        log.debug("Attempting to obtain AI response 01");
 
         ChatRequest chatRequest = context.chatRequestTransformer
                 .apply(createChatRequest(context, methodCreateInfo, methodArgs, messagesToSend, toolSpecifications),
@@ -466,9 +471,12 @@ public class AiServiceMethodImplementationSupport {
                 }
 
             }
+            log.warn("---committableChatMemory.messages() " + committableChatMemory.messages());
+            log.info("---toolResult: " + toolResults);
             for (ToolExecutionResultMessage toolResult : toolResults) {
                 committableChatMemory.add(toolResult);
             }
+            log.warn("---committableChatMemory.messages() " + committableChatMemory.messages());
             if (immediateToolReturn) {
                 if (!TypeUtil.isResult(returnType)) {
                     throw IllegalConfigurationException
@@ -494,8 +502,9 @@ public class AiServiceMethodImplementationSupport {
                 return result;
             }
 
-            log.debug("Attempting to obtain AI response");
+            log.debug("Attempting to obtain AI response 02");
             ChatModel effectiveChatModel = context.effectiveChatModel(methodCreateInfo, methodArgs);
+            log.warn("---committableChatMemory.messages() " + committableChatMemory.messages());
             ChatRequest.Builder chatRequestBuilder = ChatRequest.builder().messages(committableChatMemory.messages());
             DefaultChatRequestParameters.Builder<?> parametersBuilder = ChatRequestParameters.builder();
             if (supportsJsonSchema(effectiveChatModel)) {
@@ -1126,10 +1135,11 @@ public class AiServiceMethodImplementationSupport {
         if (createInfo.getMemoryIdParamPosition().isPresent()) {
             return methodArgs[createInfo.getMemoryIdParamPosition().get()];
         }
-
+        log.warn("-------hasChatMemoryProvider: " + hasChatMemoryProvider);
         if (hasChatMemoryProvider) {
             for (DefaultMemoryIdProvider provider : DEFAULT_MEMORY_ID_PROVIDERS) {
                 Object memoryId = provider.getMemoryId();
+                log.warn("-------memoryId: " + memoryId);
                 if (memoryId != null) {
                     String perServiceSuffix = "#" + createInfo.getInterfaceName() + "." + createInfo.getMethodName();
                     return memoryId + perServiceSuffix;

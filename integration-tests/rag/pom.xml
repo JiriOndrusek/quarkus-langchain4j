@@ -24,7 +24,7 @@
       extension with a chat model to satisfy the build -->
     <dependency>
       <groupId>io.quarkiverse.langchain4j</groupId>
-      <artifactId>quarkus-langchain4j-openai</artifactId>
+      <artifactId>quarkus-langchain4j-ollama</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>

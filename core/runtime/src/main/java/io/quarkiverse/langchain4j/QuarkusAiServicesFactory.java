@@ -5,6 +5,9 @@ import static dev.langchain4j.service.IllegalConfigurationException.illegalConfi
 import java.util.Collection;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.model.image.ImageModel;
@@ -20,12 +23,16 @@ import io.quarkiverse.langchain4j.runtime.aiservice.QuarkusAiServiceContext;
 import io.quarkiverse.langchain4j.runtime.aiservice.SystemMessageProvider;
 
 public class QuarkusAiServicesFactory implements AiServicesFactory {
+    static final Logger LOG = LoggerFactory.getLogger(QuarkusAiServicesFactory.class);
 
     @Override
     public <T> QuarkusAiServices<T> create(AiServiceContext context) {
+        LOG.info("IIIIIIIIIIIIIII: QuarkusAiServicesFactory.create");
         if (context instanceof QuarkusAiServiceContext) {
+            LOG.info("IIIIIIIIIIIIIII: QuarkusAiServicesFactory.create first if");
             return new QuarkusAiServices<>(context);
         } else {
+            LOG.info("IIIIIIIIIIIIIII: QuarkusAiServicesFactory.create - second if");
             // the context is always empty (except for the aiServiceClass) anyway and never escapes, so we can just use our own type
             return new QuarkusAiServices<>(new QuarkusAiServiceContext(context.aiServiceClass));
         }
@@ -82,8 +89,10 @@ public class QuarkusAiServicesFactory implements AiServicesFactory {
         @SuppressWarnings("unchecked")
         @Override
         public T build() {
+            LOG.info("EEEEEEEEEEEEEEEEEEEEEEE build from ql4j");
             Class<?> aiServiceClass = context.aiServiceClass;
             AiServiceClassCreateInfo classCreateInfo = AiServicesRecorder.getMetadata().get(aiServiceClass.getName());
+            LOG.info("EEEEEEEEEEEEEEEEEEEEEEE classCreateInfo: " + classCreateInfo.getClass());
             if (classCreateInfo == null) {
                 throw new RuntimeException("Quarkus was not able to determine class '" + aiServiceClass.getName()
                         + "' as an AiService at build time. Consider annotating the class with "
@@ -103,9 +112,11 @@ public class QuarkusAiServicesFactory implements AiServicesFactory {
             }
 
             try {
-                return (T) Class.forName(classCreateInfo.implClassName(), true, Thread.currentThread()
+                var t = (T) Class.forName(classCreateInfo.implClassName(), true, Thread.currentThread()
                         .getContextClassLoader()).getConstructor(QuarkusAiServiceContext.class)
                         .newInstance(quarkusAiServiceContext());
+                LOG.info("EEEEEEEEEEEEEEEEEEEEEEE returns: " + t);
+                return t;
             } catch (Exception e) {
                 throw new IllegalStateException("Unable to create class '" + classCreateInfo.implClassName(), e);
             }

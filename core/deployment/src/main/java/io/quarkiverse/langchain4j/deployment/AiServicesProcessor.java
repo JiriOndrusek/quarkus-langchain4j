@@ -469,6 +469,8 @@ public class AiServicesProcessor {
             List<ClassInfo> tools = tools(instance, index);
             DotName chatMemoryProviderSupplierClassDotName = chatMemoryProviderSupplierClassDotName(reflectiveClassProducer,
                     instance, index);
+            log.info("||||||||||||||||||||||||| deployment chatMemoryProviderSupplierClassDotName:"
+                    + chatMemoryProviderSupplierClassDotName);
             if (!tools.isEmpty() && chatMemoryProviderSupplierClassDotName == null) {
                 throw new IllegalArgumentException("Tool usage requires chat memory. Offending AiService is '"
                         + declarativeAiServiceClassInfo.name() + "'");
@@ -854,10 +856,11 @@ public class AiServicesProcessor {
             List<ToolQualifierProvider.BuildItem> toolQualifierProviderItems,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanProducer,
             BuildProducer<UnremovableBeanBuildItem> unremovableProducer) {
+        log.warn("|||||||||||handleDeclarativeServices||||||||||||||||||");
 
         boolean needsChatModelBean = false;
         boolean needsStreamingChatModelBean = false;
-        boolean needsChatMemoryProviderBean = false;
+        boolean needsChatMemoryProviderBean = true;
         boolean needsRetrieverBean = false;
         boolean needsRetrievalAugmentorBean = false;
         boolean needsModerationModelBean = false;
@@ -872,7 +875,7 @@ public class AiServicesProcessor {
             String serviceClassName = declarativeAiServiceClassInfo.name().toString();
             Integer maxSequentialToolInvocations = bi.getMaxSequentialToolInvocations();
             boolean allowContinuousForcedToolCalling = bi.isAllowContinuousForcedToolCalling();
-
+            System.out.println("|||||||| item (memory): " + bi.getChatMemoryProviderSupplierClassDotName());
             String chatLanguageModelSupplierClassName = (bi.getChatLanguageModelSupplierClassDotName() != null
                     ? bi.getChatLanguageModelSupplierClassDotName().toString()
                     : null);
@@ -916,7 +919,8 @@ public class AiServicesProcessor {
             String chatMemoryProviderSupplierClassName = bi.getChatMemoryProviderSupplierClassDotName() != null
                     ? bi.getChatMemoryProviderSupplierClassDotName().toString()
                     : null;
-
+            System.out.println("BBBBBBBBBBBBBBBBBBBBBBBBB: chatMemoryProviderSupplierClassName: "
+                    + chatMemoryProviderSupplierClassName);
             String retrievalAugmentorSupplierClassName = bi.getRetrievalAugmentorSupplierClassDotName() != null
                     ? bi.getRetrievalAugmentorSupplierClassDotName().toString()
                     : null;
@@ -986,6 +990,7 @@ public class AiServicesProcessor {
 
             String chatModelName = bi.getChatModelName();
             String moderationModelName = bi.getModerationModelName();
+            System.out.println("BBBBBBBBBBBBBBBBBBBBBBBBB: processor");
             SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
                     .configure(QuarkusAiServiceContext.class)
                     .unremovable()
@@ -1523,7 +1528,7 @@ public class AiServicesProcessor {
                 }
 
                 String ifaceName = iface.name().toString();
-                String implClassName = ifaceName + "$$QuarkusImpl";
+                String implClassName = ifaceName + "$$githQuarkusImpl";
                 boolean isRegisteredService = registeredAiServiceClassNames.contains(ifaceName);
 
                 ClassCreator.Builder classCreatorBuilder = ClassCreator.builder()

@@ -15,6 +15,8 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.util.AnnotationLiteral;
 import jakarta.enterprise.util.TypeLiteral;
 
+import org.jboss.logging.Logger;
+
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -39,6 +41,8 @@ import io.quarkus.runtime.annotations.Recorder;
 
 @Recorder
 public class AiServicesRecorder {
+    private static final Logger log = Logger.getLogger(AiServicesRecorder.class);
+
     private static final TypeLiteral<Instance<RetrievalAugmentor>> RETRIEVAL_AUGMENTOR_TYPE_LITERAL = new TypeLiteral<>() {
     };
 
@@ -115,10 +119,14 @@ public class AiServicesRecorder {
 
     public Function<SyntheticCreationalContext<QuarkusAiServiceContext>, QuarkusAiServiceContext> createDeclarativeAiService(
             DeclarativeAiServiceCreateInfo info) {
+        log.info("AAAAAAAAAAAAAAAAAAAAAAA AiServicesRecorder: ");
         return new Function<>() {
             @SuppressWarnings("unchecked")
             @Override
             public QuarkusAiServiceContext apply(SyntheticCreationalContext<QuarkusAiServiceContext> creationalContext) {
+                System.out.println("    >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.");
+                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.");
+                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.");
                 try {
                     Class<?> serviceClass = loadClass(info.serviceClassName());
 
@@ -234,13 +242,17 @@ public class AiServicesRecorder {
                             }
                         }
                     }
-
+                    log.error("||||||||||info.chatMemoryProviderSupplierClassName(): "
+                            + info.chatMemoryProviderSupplierClassName());
                     if (info.chatMemoryProviderSupplierClassName() != null) {
+                        log.error("||||||| yes");
                         if (RegisterAiService.BeanChatMemoryProviderSupplier.class.getName()
                                 .equals(info.chatMemoryProviderSupplierClassName())) {
+                            log.error("||||||| first if ");
                             quarkusAiServices.chatMemoryProvider(creationalContext.getInjectedReference(
                                     ChatMemoryProvider.class));
                         } else {
+                            log.error("||||||| second if");
                             Supplier<? extends ChatMemoryProvider> supplier = (Supplier<? extends ChatMemoryProvider>) loadClass(
                                     info.chatMemoryProviderSupplierClassName())
                                     .getConstructor().newInstance();

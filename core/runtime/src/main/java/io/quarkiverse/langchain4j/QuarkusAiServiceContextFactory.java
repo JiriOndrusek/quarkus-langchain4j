@@ -1,5 +1,7 @@
 package io.quarkiverse.langchain4j;
 
+import java.util.logging.Logger;
+
 import dev.langchain4j.service.AiServiceContext;
 import dev.langchain4j.spi.services.AiServiceContextFactory;
 import io.quarkiverse.langchain4j.runtime.aiservice.QuarkusAiServiceContext;
@@ -11,6 +13,8 @@ public class QuarkusAiServiceContextFactory implements AiServiceContextFactory {
 
     @Override
     public AiServiceContext create(Class<?> aiServiceClass) {
+        Logger.getLogger(QuarkusAiServiceContext.class.getName())
+                .warning("|||||||| creating AiServiceContext instance: " + aiServiceClass);
         InstanceHandle<QuarkusAiServiceContext> instance = Arc.container().instance(QuarkusAiServiceContext.class,
                 QuarkusAiServiceContextQualifier.Literal.of(
                         aiServiceClass.getName()));
