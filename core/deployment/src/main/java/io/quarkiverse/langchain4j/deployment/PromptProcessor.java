@@ -55,7 +55,7 @@ import io.quarkus.gizmo.ResultHandle;
 
 public class PromptProcessor {
 
-    private static final Logger log = Logger.getLogger(AiServicesProcessor.class);
+    private static final Logger log = Logger.getLogger(PromptProcessor.class);
 
     public static final MethodDescriptor MAP_PUT = MethodDescriptor.ofMethod(Map.class, "put", Object.class, Object.class,
             Object.class);

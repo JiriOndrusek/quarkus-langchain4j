@@ -42,7 +42,7 @@ import io.quarkus.tls.TlsConfigurationRegistry;
 @Recorder
 public class OllamaRecorder {
 
-    private static final String DEFAULT_BASE_URL = "http://localhost:11434";
+    private static final String DEFAULT_BASE_URL = "http://testiiiik:11434";
 
     private final LangChain4jOllamaFixedRuntimeConfig fixedRuntimeConfig;
     private final RuntimeValue<LangChain4jOllamaConfig> runtimeConfig;
