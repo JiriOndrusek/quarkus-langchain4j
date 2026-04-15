@@ -268,7 +268,12 @@ public class AiServicesProcessor {
                 ReflectiveClassBuildItem.builder(
                         "io.quarkiverse.langchain4j.runtime.aiservice.DefaultCommittableChatMemory",
                         "io.quarkiverse.langchain4j.runtime.aiservice.NoopChatMemory")
-                        .constructors().fields().methods().build());
+                        .constructors().fields().methods().serialization().build());
+
+        // Register ArrayList for serialization to ensure chat memory state is preserved in native mode
+        reflectiveClassProducer.produce(
+                ReflectiveClassBuildItem.builder("java.util.ArrayList")
+                        .constructors().methods().fields().serialization().build());
     }
 
     @BuildStep

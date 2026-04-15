@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.jboss.logging.Logger;
+
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.memory.ChatMemory;
 
 class DefaultCommittableChatMemory implements CommittableChatMemory {
+
+    private static final Logger log = Logger.getLogger(DefaultCommittableChatMemory.class);
 
     private final ChatMemory delegate;
     private final List<ChatMessage> newMessages;
@@ -16,6 +20,7 @@ class DefaultCommittableChatMemory implements CommittableChatMemory {
     public DefaultCommittableChatMemory(ChatMemory delegate) {
         this.delegate = delegate;
         this.newMessages = new ArrayList<>(delegate.messages());
+        log.debugf("DefaultCommittableChatMemory created with %d messages", this.newMessages.size());
     }
 
     @Override
@@ -25,6 +30,8 @@ class DefaultCommittableChatMemory implements CommittableChatMemory {
 
     @Override
     public void add(ChatMessage message) {
+        log.debugf("Adding message, current size: %d, message type: %s", newMessages.size(),
+                message.getClass().getSimpleName());
         if (message instanceof SystemMessage) {
             Optional<SystemMessage> systemMessage = findSystemMessage(newMessages);
             if (systemMessage.isPresent()) {
@@ -38,6 +45,7 @@ class DefaultCommittableChatMemory implements CommittableChatMemory {
         } else {
             newMessages.add(message);
         }
+        log.debugf("After adding message, size: %d", newMessages.size());
     }
 
     private static Optional<SystemMessage> findSystemMessage(List<ChatMessage> messages) {
@@ -49,6 +57,7 @@ class DefaultCommittableChatMemory implements CommittableChatMemory {
 
     @Override
     public List<ChatMessage> messages() {
+        log.debugf("messages() called, returning %d messages", newMessages.size());
         return new ArrayList<>(newMessages);
     }
 
