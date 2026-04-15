@@ -262,6 +262,13 @@ public class AiServicesProcessor {
                 ReflectiveClassBuildItem.builder(PropertyNamingStrategies.SnakeCaseStrategy.class).constructors().build());
         reflectiveClassProducer.produce(
                 ReflectiveClassBuildItem.builder(PropertyNamingStrategies.LowerCamelCaseStrategy.class).constructors().build());
+
+        // Register chat memory implementations for native mode - needed for tool execution
+        reflectiveClassProducer.produce(
+                ReflectiveClassBuildItem.builder(
+                        "io.quarkiverse.langchain4j.runtime.aiservice.DefaultCommittableChatMemory",
+                        "io.quarkiverse.langchain4j.runtime.aiservice.NoopChatMemory")
+                        .constructors().fields().methods().build());
     }
 
     @BuildStep
