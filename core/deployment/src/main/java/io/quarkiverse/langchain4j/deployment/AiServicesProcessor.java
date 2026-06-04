@@ -95,6 +95,7 @@ import io.quarkiverse.langchain4j.deployment.DeclarativeAiServiceBuildItem.Decla
 import io.quarkiverse.langchain4j.deployment.DeclarativeAiServiceBuildItem.DeclarativeAiServiceOutputGuardrails;
 import io.quarkiverse.langchain4j.deployment.config.LangChain4jBuildConfig;
 import io.quarkiverse.langchain4j.deployment.devui.ToolProviderInfo;
+import io.quarkiverse.langchain4j.deployment.items.AiServiceExcludedClassBuildItem;
 import io.quarkiverse.langchain4j.deployment.items.AiServicesMethodBuildItem;
 import io.quarkiverse.langchain4j.deployment.items.MethodParameterAllowedAnnotationsBuildItem;
 import io.quarkiverse.langchain4j.deployment.items.MethodParameterIgnoredAnnotationsBuildItem;
@@ -1497,6 +1498,7 @@ public class AiServicesProcessor {
             List<ToolMethodBuildItem> tools,
             List<ToolQualifierProvider.BuildItem> toolQualifierProviderItems,
             List<AnnotationsImpliesAiServiceBuildItem> annotationsImpliesAiServiceItems,
+            List<AiServiceExcludedClassBuildItem> aiServiceExcludedClassItems,
             List<SkipOutputFormatInstructionsBuildItem> skipOutputFormatInstructionsItems,
             List<FallbackToDummyUserMessageBuildItem> fallbackToDummyUserMessageItems) {
 
@@ -1548,6 +1550,16 @@ public class AiServicesProcessor {
                 .map(bi -> bi.getServiceClassInfo().name().toString()).collect(
                         Collectors.toUnmodifiableSet());
         detectedForCreate.addAll(registeredAiServiceClassNames);
+
+        if (!aiServiceExcludedClassItems.isEmpty()) {
+            detectedForCreate.removeIf(className -> {
+                ClassInfo classInfo = index.getClassByName(className);
+                if (classInfo == null) {
+                    return false;
+                }
+                return aiServiceExcludedClassItems.stream().anyMatch(item -> item.getPredicate().test(classInfo));
+            });
+        }
 
         Set<ClassInfo> ifacesForCreate = new HashSet<>();
         for (String className : detectedForCreate) {
